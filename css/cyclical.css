@@ -1,0 +1,228 @@
+div.color1,span.color1 {
+  background-color: #FF6666;
+}
+
+div.color2,span.color2 {
+  background-color: #33FF99;
+}
+
+div.color3,span.color3 {
+  background-color: #3399FF;
+}
+
+div.color4,span.color4 {
+  background-color: #00FFFF;
+}
+
+div.color5,span.color5 {
+  background-color: #FFFF66;
+}
+
+div.color6,span.color6 {
+  background-color: #BBBBBB;
+}
+
+line.color1 {
+  stroke: #FF6666;
+}
+
+line.color2 {
+  stroke: #33FF99;
+}
+
+line.color3 {
+  stroke: #3399FF;
+}
+
+line.color4 {
+  stroke: #00FFFF;
+}
+
+line.color5 {
+  stroke: #FFFF66;
+}
+
+line.color6 {
+  stroke: #BBBBBB;
+}
+
+rect.color1 {
+  fill: #FF6666;
+}
+
+rect.color2 {
+  fill: #33FF99;
+}
+
+rect.color3 {
+  fill: #3399FF;
+}
+
+rect.color4 {
+  fill: #00FFFF;
+}
+
+rect.color5 {
+  fill: #FFFF66;
+}
+
+rect.color6 {
+  fill: #BBBBBB;
+}
+
+.selectedColor {
+  border: 1px solid black;
+}
+
+/* matches anything with class that starts with spanDetail */
+[class^="spanDetail"] {
+  position: absolute;
+  background-color: #FFFFFF;
+  pointer-events: auto;
+  padding: 5px;
+  border: 1px solid black;
+}
+
+/* matches anything with class that starts with imageBoxDetail */
+[class^="imageBoxDetail"] {
+  position: absolute;
+  background-color: #FFFFFF;
+  pointer-events: auto;
+  padding: 5px;
+  border: 1px solid black;
+}
+
+.connectionDetail {
+  position: absolute;
+  background-color: #FFFFFF;
+  pointer-events: auto;
+  padding: 5px;
+  border: 1px solid black;
+}
+
+.colorBox {
+  width: 20px;
+  height: 20px;
+  float: left;
+}
+
+.styleChooser {
+  clear: both;
+}
+
+.highlighted {
+  /*
+  background-color: #ff0;
+  border: 1px solid #ff0;
+  */
+}
+
+.hidden {
+  display: none;
+}
+
+.allborders {
+  border-style: solid;
+  border-width: 1px;
+}
+
+.truncatedLeft {
+  border-style: solid solid solid none;
+  border-width: 1px;
+}
+
+.truncatedRight {
+  border-style: solid none solid solid;
+  border-width: 1px;
+}
+
+.truncatedBoth {
+  border-width: 1px;
+  border-style: solid none solid none;
+}
+
+#htmlLayer {
+  overflow: hidden;
+  padding: 10px;
+}
+
+/* put 10px of space between htmlLayer children */
+#htmlLayer > * {
+    margin-left: 10px;
+}
+#htmlLayer > *:first-child {
+    margin-left: 0px;
+}
+
+.popUp {
+  position: absolute;
+  background-color: #00FF00;
+  pointer-events: auto;
+}
+
+
+.timepoint {
+  float: left;
+  width: 400px;
+  padding: 10px;
+  border: 1px solid black;
+}
+
+.artifact {
+  border-top: 1px solid black;
+  padding: 5px 0px 5px 0px;
+}
+
+.deleteArtifact {
+  float: right;
+}
+
+#svgLayer {
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  pointer-events: none;
+}
+
+#popUpLayer {
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  pointer-events: none;
+}
+
+rect.imageBox {
+  pointer-events: auto;
+  opacity: .5;
+}
+
+line.connection {
+  pointer-events: auto;
+}
+
+
+rect.dragBox {
+  pointer-events: auto;
+}
+
+.removeRangeButton {
+  pointer-events: auto;
+  fill: #f00;
+}
+
+html, body {
+  margin: 0px;
+  padding: 0px;
+  border: 0px;
+}
+.timepointTitle {
+  font-weight: bold;
+}
+
+/* declare this last so that it takes precedence over other styles */
+.selected {
+  /*background-color: #FFFF00;
+  font-weight: bold;*/
+}
+
+
