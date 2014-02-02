@@ -6,9 +6,10 @@ var MIN_RADIUS = 10;
 var MAX_RADIUS = CENTER_X - MIN_RADIUS;
 var NOW = new Date().getTime();
 var CYCLES = [
-  { start: NOW - (30 * 1000), end: NOW + (30 * 1000) },
-  { start: NOW - (30 * 1000), end: NOW + (10 * 1000) },
-  { start: NOW - (10 * 1000), end: NOW + (30 * 1000) },
+  { start: NOW - (10 * 1000), end: NOW + (60 * 1000) },
+  { start: NOW - (30 * 1000), end: NOW + (600 * 1000) },
+  { start: NOW - (30 * 1000), end: NOW + (3600 * 1000) },
+  { start: NOW - (30 * 1000), end: NOW + (7 * 24 * 3600 * 1000) },
 ];
 
 /**
@@ -128,18 +129,29 @@ function update() {
   //   http://bl.ocks.org/mbostock/1098617
   //   https://github.com/mbostock/d3/wiki/SVG-Shapes#wiki-arc
 
+  var guideCircle = svg.selectAll("circle.guideCircle")
+    .data(CYCLES);
+  guideCircle.enter()
+    .append("circle")
+    .attr("class", "guideCircle")
+    .attr("stroke", "#CCCCCC")
+    .attr("fill", "transparent")
+    .attr("r", function (d, i) { return getRadius(i); })
+    .attr("cx", CENTER_X)
+    .attr("cy", CENTER_Y);
+  guideCircle.exit().remove();
+
   var cycle = svg.selectAll("path.cycle")
     .data(CYCLES);
   cycle.enter()
     .append("path")
     .attr("class", "cycle")
     .attr("stroke", "green")
+    .attr("stroke-width", "3")
     .attr("d", makeInitialPathData)
     .attr("fill", "transparent");
-  cycle
-    .attr("d", makeSubsequentPathData);
-  cycle.exit()
-    .remove();
+  cycle.attr("d", makeSubsequentPathData);
+  cycle.exit() .remove();
 
   var cycleTip = svg.selectAll("circle.cycleTip")
     .data(CYCLES);
@@ -152,4 +164,5 @@ function update() {
     .attr("cy", makeCycleTipCY)
     .attr("cx", makeCycleTipCX);
   cycleTip.exit().remove();
+
 }
