@@ -4,11 +4,11 @@ var CENTER_X = WIDTH/2;
 var CENTER_Y = HEIGHT/2;
 var MIN_RADIUS = 10;
 var MAX_RADIUS = CENTER_X - MIN_RADIUS;
+var NOW = new Date().getTime();
 var CYCLES = [
-  { total: 86400, elapsed: 86400 * .33 },
-  { total: 86400, elapsed: 86400 * .58 },
-  { total: 86400, elapsed: 86400 * .71 },
-  { total: 86400, elapsed: 86400 * .99 },
+  { start: NOW - (30 * 1000), end: NOW + (30 * 1000) },
+  { start: NOW - (30 * 1000), end: NOW + (10 * 1000) },
+  { start: NOW - (10 * 1000), end: NOW + (30 * 1000) },
 ];
 
 /**
@@ -22,6 +22,17 @@ var CYCLES = [
  *    x-axis, SVG assumes the opposite
  */
 function makeRelativeEndPoint(radius, ratio, isX) {
+
+  /*
+  // arc paths don't handle near complete circles well
+  // so we could cheat. . .
+  console.log(ratio);
+  var ratioRemainder = ratio % 1;
+  if (ratioRemainder > .99) ratio -= (ratioRemainder - .99);
+  if (ratioRemainder < .01) ratio += (.01 - ratioRemainder);
+  console.log(ratio);
+  */
+
   // convert ratio into radians (0 => 0 . . . 1 => 2PI)
   var radians = ratio * 2 * Math.PI;
 
@@ -46,7 +57,8 @@ function makeRelativeEndPoint(radius, ratio, isX) {
 }
 
 function getElapsedRatio(d) {
-  return d.elapsed/d.total;
+  var now = new Date().getTime();
+  return (now - d.start)/(d.end - d.start);
 }
 
 function getStartY(i) {
@@ -63,7 +75,7 @@ function getRadius(i) {
   return ((i + 1) * radiusIncrement) + MIN_RADIUS;
 }
 
-function makeInitialPathData(d, i) {
+function makePathData(d, i, initialPath) {
   var radius = getRadius(i);
   var startX = getStartX(i);
   var startY = getStartY(i);
@@ -71,10 +83,10 @@ function makeInitialPathData(d, i) {
   var yRadius = radius;
   var xAxisRotation = 0;
   var elapsedRatio = getElapsedRatio(d);
-  var largeArc = elapsedRatio > .5 ? 1 : 0;
+  var largeArc = elapsedRatio % 1 > .5 ? 1 : 0;
   var sweep = 1; // always one as long as we start from the top and go clockwise
-  var endDx = startX;
-  var endDy = startY;
+  var endDx = initialPath ? startX : makeRelativeEndPoint(radius, elapsedRatio, true);
+  var endDy = initialPath ? startY : makeRelativeEndPoint(radius, elapsedRatio, false);
   var parts = [
     "M", startX, startY,
     "a", xRadius, yRadius, 
@@ -84,25 +96,12 @@ function makeInitialPathData(d, i) {
   return parts.join(" ");
 }
 
-function makePathData(d, i) {
-  var radius = getRadius(i);
-  var startX = getStartX(i);
-  var startY = getStartY(i);
-  var xRadius = radius;
-  var yRadius = radius;
-  var xAxisRotation = 0;
-  var elapsedRatio = getElapsedRatio(d);
-  var largeArc = elapsedRatio > .5 ? 1 : 0;
-  var sweep = 1; // always one as long as we start from the top and go clockwise
-  var endDx = makeRelativeEndPoint(radius, elapsedRatio, true);
-  var endDy = makeRelativeEndPoint(radius, elapsedRatio, false);
-  var parts = [
-    "M", startX, startY,
-    "a", xRadius, yRadius, 
-      xAxisRotation, largeArc, sweep,
-      endDx, endDy
-  ];
-  return parts.join(" ");
+function makeInitialPathData(d, i) {
+  return makePathData(d, i, true);
+}
+
+function makeSubsequentPathData(d, i) {
+  return makePathData(d, i, false);
 }
 
 function makeCycleTipCX(d, i) {
@@ -115,7 +114,8 @@ function makeCycleTipCY(d, i) {
   return relativeEndPoint + getStartY(i); // convert to absolute
 }
 
-function render() {
+function update() {
+
   svg = d3.select("#mainSvg")
     .attr("width", WIDTH)
     .attr("height", HEIGHT);
@@ -128,7 +128,7 @@ function render() {
   //   http://bl.ocks.org/mbostock/1098617
   //   https://github.com/mbostock/d3/wiki/SVG-Shapes#wiki-arc
 
-  var cycle = svg.selectAll(".cycle")
+  var cycle = svg.selectAll("path.cycle")
     .data(CYCLES);
   cycle.enter()
     .append("path")
@@ -137,11 +137,11 @@ function render() {
     .attr("d", makeInitialPathData)
     .attr("fill", "transparent");
   cycle
-    .attr("d", makePathData);
+    .attr("d", makeSubsequentPathData);
   cycle.exit()
     .remove();
 
-  var cycleTip = svg.selectAll("cycleTip")
+  var cycleTip = svg.selectAll("circle.cycleTip")
     .data(CYCLES);
   cycleTip.enter()
     .append("circle")
@@ -151,6 +151,5 @@ function render() {
   cycleTip
     .attr("cy", makeCycleTipCY)
     .attr("cx", makeCycleTipCX);
-  cycleTip.exit()
-    .remove();
+  cycleTip.exit().remove();
 }
