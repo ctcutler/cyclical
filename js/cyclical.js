@@ -6,10 +6,10 @@ var MIN_RADIUS = 10;
 var MAX_RADIUS = CENTER_X - MIN_RADIUS;
 var NOW = new Date().getTime();
 var CYCLES = [
-  { start: NOW - (10 * 1000), end: NOW + (60 * 1000) },
-  { start: NOW - (30 * 1000), end: NOW + (600 * 1000) },
-  { start: NOW - (30 * 1000), end: NOW + (3600 * 1000) },
-  { start: NOW - (30 * 1000), end: NOW + (7 * 24 * 3600 * 1000) },
+  { name: "date", start: NOW - (10 * 1000), end: NOW + (60 * 1000), id: 1 },
+  { name: "cranberry", start: NOW - (30 * 1000), end: NOW + (600 * 1000), id: 2 },
+  { name: "banana", start: NOW - (30 * 1000), end: NOW + (3600 * 1000), id: 3 },
+  { name: "apple", start: NOW - (30 * 1000), end: NOW + (7 * 24 * 3600 * 1000), id: 4 },
 ];
 
 /**
@@ -76,18 +76,19 @@ function getRadius(i) {
   return ((i + 1) * radiusIncrement) + MIN_RADIUS;
 }
 
-function makePathData(d, i, initialPath) {
+function makePathData(d, i, elapsedRatio) {
   var radius = getRadius(i);
   var startX = getStartX(i);
   var startY = getStartY(i);
   var xRadius = radius;
   var yRadius = radius;
   var xAxisRotation = 0;
-  var elapsedRatio = getElapsedRatio(d);
+  if (!elapsedRatio)
+    elapsedRatio = getElapsedRatio(d);
   var largeArc = elapsedRatio % 1 > .5 ? 1 : 0;
   var sweep = 1; // always one as long as we start from the top and go clockwise
-  var endDx = initialPath ? startX : makeRelativeEndPoint(radius, elapsedRatio, true);
-  var endDy = initialPath ? startY : makeRelativeEndPoint(radius, elapsedRatio, false);
+  endDx = makeRelativeEndPoint(radius, elapsedRatio, true);
+  endDy = makeRelativeEndPoint(radius, elapsedRatio, false);
   var parts = [
     "M", startX, startY,
     "a", xRadius, yRadius, 
@@ -98,11 +99,15 @@ function makePathData(d, i, initialPath) {
 }
 
 function makeInitialPathData(d, i) {
-  return makePathData(d, i, true);
+  return makePathData(d, i, 0);
 }
 
 function makeSubsequentPathData(d, i) {
-  return makePathData(d, i, false);
+  return makePathData(d, i);
+}
+
+function makeLabelPathData(d, i) {
+  return makePathData(d, i, .999);
 }
 
 function makeCycleTipCX(d, i) {
@@ -120,6 +125,8 @@ function update() {
   svg = d3.select("#mainSvg")
     .attr("width", WIDTH)
     .attr("height", HEIGHT);
+
+  svgDefs = svg.select("defs");
 
   // FIXME: setting up transitions would be cool, but wow is it complicated
   // when acting on path data. . . here is some reading material:
@@ -151,7 +158,7 @@ function update() {
     .attr("d", makeInitialPathData)
     .attr("fill", "transparent");
   cycle.attr("d", makeSubsequentPathData);
-  cycle.exit() .remove();
+  cycle.exit().remove();
 
   var cycleTip = svg.selectAll("circle.cycleTip")
     .data(CYCLES);
@@ -164,5 +171,33 @@ function update() {
     .attr("cy", makeCycleTipCY)
     .attr("cx", makeCycleTipCX);
   cycleTip.exit().remove();
+
+  var labelPath = svgDefs.selectAll("path.labelPath")
+    .data(CYCLES);
+  labelPath.enter()
+    .append("path")
+    .attr("class", "labelPath")
+    .attr("id", function (d) { return "label"+d.id })
+    .attr("d", makeLabelPathData);
+  labelPath.exit().remove();
+
+  var labelUse = svg.selectAll("use.label")
+    .data(CYCLES);
+  labelUse.enter()
+    .append("use")
+    .attr("xlink:href", function (d) { return "#label"+d.id })
+    .attr("fill", "none")
+    .attr("stroke", "none");
+  labelUse.exit().remove();
+
+  var text = svg.selectAll("text.label")
+    .data(CYCLES);
+  text.enter()
+    .append("text")
+    .attr("class", "label")
+    .attr("style", "fill:red;")
+    .append("textPath")
+    .attr("xlink:href", function (d) { return "#label"+d.id })
+    .text(function (d) { return d.name });
 
 }
