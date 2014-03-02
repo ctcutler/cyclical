@@ -1,15 +1,20 @@
-var WIDTH = 500;
-var HEIGHT = 500;
+var WIDTH = 800;
+var HEIGHT = 800;
 var CENTER_X = WIDTH/2;
 var CENTER_Y = HEIGHT/2;
-var MIN_RADIUS = 10;
+var MIN_RADIUS = 20;
 var MAX_RADIUS = CENTER_X - MIN_RADIUS;
 var NOW = new Date().getTime();
+var SECOND = 1000;
+var MINUTE = 60 * SECOND;
+var HOUR = 60 * MINUTE;
+var DAY = 24 * HOUR;
+var WEEK = 7 * DAY;
 var CYCLES = [
-  { name: "date", start: NOW - (10 * 1000), end: NOW + (60 * 1000), id: 1 },
-  { name: "cranberry", start: NOW - (30 * 1000), end: NOW + (600 * 1000), id: 2 },
-  { name: "banana", start: NOW - (30 * 1000), end: NOW + (3600 * 1000), id: 3 },
-  { name: "apple", start: NOW - (30 * 1000), end: NOW + (7 * 24 * 3600 * 1000), id: 4 },
+  { name: "get a haircut", start: NOW - (1 * WEEK), end: NOW + (3 * WEEK), id: 1 },
+  { name: "call Mom", start: NOW - (12 * DAY), end: NOW + (2 * DAY), id: 2 },
+  { name: "water the plants", start: NOW - (2 * DAY), end: NOW + (5 * DAY), id: 3 },
+  { name: "coding break: get up and stretch", start: NOW - (16 * MINUTE), end: NOW + (14 * MINUTE), id: 4 },
 ];
 
 /**
@@ -107,7 +112,7 @@ function makeSubsequentPathData(d, i) {
 }
 
 function makeLabelPathData(d, i) {
-  return makePathData(d, i, .999);
+  return makePathData(d, i+.1, .999);
 }
 
 function makeCycleTipCX(d, i) {
@@ -118,6 +123,22 @@ function makeCycleTipCX(d, i) {
 function makeCycleTipCY(d, i) {
   var relativeEndPoint = makeRelativeEndPoint(getRadius(i), getElapsedRatio(d), false);
   return relativeEndPoint + getStartY(i); // convert to absolute
+}
+
+function renderTimeQuantity(millis) {
+  if (millis < SECOND) {
+    return millis + " ms";
+  } else if (millis < MINUTE) {
+    return Math.round(millis/SECOND) + " seconds";
+  } else if (millis < HOUR) {
+    return Math.round(millis/MINUTE) + " minutes";
+  } else if (millis < DAY) {
+    return Math.round(millis/HOUR) + " hours";
+  } else if (millis < WEEK) {
+    return Math.round(millis/DAY) + " days";
+  } else {
+    return Math.round(millis/WEEK) + " weeks";
+  }
 }
 
 function update() {
@@ -160,7 +181,7 @@ function update() {
   cycle.attr("d", makeSubsequentPathData);
   cycle.exit().remove();
 
-  var cycleTip = svg.selectAll("circle.cycleTip")
+ var cycleTip = svg.selectAll("circle.cycleTip")
     .data(CYCLES);
   cycleTip.enter()
     .append("circle")
@@ -186,6 +207,7 @@ function update() {
   labelUse.enter()
     .append("use")
     .attr("xlink:href", function (d) { return "#label"+d.id })
+    .attr("class", "label")
     .attr("fill", "none")
     .attr("stroke", "none");
   labelUse.exit().remove();
@@ -195,9 +217,15 @@ function update() {
   text.enter()
     .append("text")
     .attr("class", "label")
-    .attr("style", "fill:red;")
+    .attr("style", "fill:black;")
     .append("textPath")
     .attr("xlink:href", function (d) { return "#label"+d.id })
-    .text(function (d) { return d.name });
-
+    .attr("class", "textPathLabel");
+  svg.selectAll(".textPathLabel")
+    .text(function (d) { 
+      return d.name 
+        + " (" 
+        + renderTimeQuantity(d.end - (new Date().getTime())) 
+        + " remain)" 
+    });
 }
