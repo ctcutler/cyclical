@@ -223,9 +223,9 @@ function update() {
     .attr("class", "textPathLabel");
   svg.selectAll(".textPathLabel")
     .text(function (d) { 
-      return d.name 
-        + " (" 
-        + renderTimeQuantity(d.end - (new Date().getTime())) 
-        + " remain)" 
+      // get the proper time quantity even if we've looped around once or more
+      var period = d.end - d.start;
+      var remaining = period - (((new Date().getTime()) - d.start) % period);
+      return d.name + " (" + renderTimeQuantity(remaining) + " remain)";
     });
 }
