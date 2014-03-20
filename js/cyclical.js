@@ -4,18 +4,36 @@ var CENTER_X = WIDTH/2;
 var CENTER_Y = HEIGHT/2;
 var MIN_RADIUS = 20;
 var MAX_RADIUS = CENTER_X - MIN_RADIUS;
+
 var NOW = new Date().getTime();
 var SECOND = 1000;
 var MINUTE = 60 * SECOND;
 var HOUR = 60 * MINUTE;
 var DAY = 24 * HOUR;
 var WEEK = 7 * DAY;
+var MIN_CYCLE = 5 * MINUTE;
+var MAX_CYCLE = 365 * DAY;
+var MARGIN = 20;
+var radiusScale = d3.scale.log().domain([MIN_CYCLE, MAX_CYCLE]).range([MIN_RADIUS, MAX_RADIUS - MARGIN]);
+
 var CYCLES = [
-  { name: "get a haircut", start: NOW - (1 * WEEK), end: NOW + (3 * WEEK), id: 1 },
-  { name: "call Mom", start: NOW - (12 * DAY), end: NOW + (2 * DAY), id: 2 },
-  { name: "water the plants", start: NOW - (2 * DAY), end: NOW + (5 * DAY), id: 3 },
-  { name: "coding break: get up and stretch", start: NOW - (16 * MINUTE), end: NOW + (14 * MINUTE), id: 4 },
+  { name: "30m", start: NOW, end: NOW + (30 * MINUTE), id: 1 },
+  { name: "1h", start: NOW, end: NOW + (1 * HOUR), id: 2 },
+  { name: "1d", start: NOW, end: NOW + (1 * DAY), id: 3 },
+  { name: "7d", start: NOW, end: NOW + (7 * DAY), id: 4 },
+  { name: "30d", start: NOW, end: NOW + (30 * DAY), id: 5 },
+  { name: "90d", start: NOW, end: NOW + (90 * DAY), id: 6 },
+  { name: "365d", start: NOW, end: NOW + (365 * DAY), id: 7 },
 ];
+
+
+/* for js console testing:
+s = document.createElement('script');
+s.src = "file:///Users/ctcutler/src/cyclical/lib/d3.v3.min.js"
+document.body.appendChild(s)
+
+http://jsfiddle.net/r4T77/
+*/
 
 /**
  * We need to get coordinates for a point on a circle with the
@@ -67,24 +85,31 @@ function getElapsedRatio(d) {
   return (now - d.start)/(d.end - d.start);
 }
 
-function getStartY(i) {
-  return CENTER_Y - getRadius(i);
+function getStartY(d) {
+  return CENTER_Y - getRadiusLog(d.end-d.start);
 }
 
 function getStartX(i) {
   return CENTER_X;
 }
 
+/*
 function getRadius(i) {
   var cycleCount = CYCLES.length;
   var radiusIncrement = (MAX_RADIUS - MIN_RADIUS) / cycleCount;
   return ((i + 1) * radiusIncrement) + MIN_RADIUS;
 }
+*/
+
+function getRadiusLog(ms) {
+  return radiusScale(ms);
+}
 
 function makePathData(d, i, elapsedRatio) {
-  var radius = getRadius(i);
+  var cycleLength = d.end - d.start;
+  var radius = getRadiusLog(cycleLength);
   var startX = getStartX(i);
-  var startY = getStartY(i);
+  var startY = getStartY(d);
   var xRadius = radius;
   var yRadius = radius;
   var xAxisRotation = 0;
@@ -116,13 +141,13 @@ function makeLabelPathData(d, i) {
 }
 
 function makeCycleTipCX(d, i) {
-  var relativeEndPoint = makeRelativeEndPoint(getRadius(i), getElapsedRatio(d), true);
+  var relativeEndPoint = makeRelativeEndPoint(getRadiusLog(d.end-d.start), getElapsedRatio(d), true);
   return relativeEndPoint + getStartX(i); // convert to absolute
 }
 
 function makeCycleTipCY(d, i) {
-  var relativeEndPoint = makeRelativeEndPoint(getRadius(i), getElapsedRatio(d), false);
-  return relativeEndPoint + getStartY(i); // convert to absolute
+  var relativeEndPoint = makeRelativeEndPoint(getRadiusLog(d.end-d.start), getElapsedRatio(d), false);
+  return relativeEndPoint + getStartY(d); // convert to absolute
 }
 
 function renderTimeQuantity(millis) {
@@ -164,7 +189,7 @@ function update() {
     .attr("class", "guideCircle")
     .attr("stroke", "#CCCCCC")
     .attr("fill", "transparent")
-    .attr("r", function (d, i) { return getRadius(i); })
+    .attr("r", function (d, i) { return getRadiusLog(d.end-d.start); })
     .attr("cx", CENTER_X)
     .attr("cy", CENTER_Y);
   guideCircle.exit().remove();
@@ -228,4 +253,5 @@ function update() {
       var remaining = period - (((new Date().getTime()) - d.start) % period);
       return d.name + " (" + renderTimeQuantity(remaining) + " remain)";
     });
+
 }
