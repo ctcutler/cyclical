@@ -15,15 +15,18 @@ var MIN_CYCLE = 5 * MINUTE;
 var MAX_CYCLE = 365 * DAY;
 var MARGIN = 20;
 
+var CENTER_POINT_RADIUS = 5;
+var CENTER_POINT_LABEL_OFFSET = CENTER_POINT_RADIUS + 5;
+
 var radiusScale = d3.scale.log().domain([MIN_CYCLE, MAX_CYCLE]).range([0, MAX_RADIUS - MARGIN]);
 
 var CYCLES = [
-  { name: "30m", start: NOW, end: NOW + (30 * MINUTE), id: 1 },
+  //{ name: "30m", start: NOW, end: NOW + (30 * MINUTE), id: 1 },
   { name: "1h", start: NOW, end: NOW + (1 * HOUR), id: 2 },
   { name: "1d", start: NOW, end: NOW + (1 * DAY), id: 3 },
-  { name: "7d", start: NOW, end: NOW + (7 * DAY), id: 4 },
+  //{ name: "7d", start: NOW, end: NOW + (7 * DAY), id: 4 },
   { name: "30d", start: NOW, end: NOW + (30 * DAY), id: 5 },
-  { name: "90d", start: NOW, end: NOW + (90 * DAY), id: 6 },
+  //{ name: "90d", start: NOW, end: NOW + (90 * DAY), id: 6 },
   { name: "365d", start: NOW, end: NOW + (365 * DAY), id: 7 },
 ];
 
@@ -173,25 +176,35 @@ function create() {
     .attr("height", HEIGHT);
 
   var drag = d3.behavior.drag()
-    .on("drag", dragged);
+    .on("drag", centerPointDragged);
 
   update();
 
   svg.append("circle")
-    .attr("class", "centerPoint")
-    .attr("r", "5")
+    .attr("id", "centerPoint")
+    .attr("r", CENTER_POINT_RADIUS)
     .attr("fill", "red")
     .attr("cy", CENTER_Y)
     .attr("cx", CENTER_X)
     .call(drag);
 
+  svg.append("text")
+    .attr("id", "centerPointLabel")
+    .attr("x", CENTER_X)
+    .attr("y", CENTER_Y-CENTER_POINT_LABEL_OFFSET)
+    .attr("text-anchor", "middle")
+    .call(drag);
 }
 
-function dragged(d) {
+function centerPointDragged(d) {
   var newY = d3.event.y;
   if (newY >= 0 && newY <= CENTER_Y) {
-    d3.select(this).attr("cy", d3.event.y);
     var radiusValue = MAX_RADIUS - newY;
+
+    d3.select("#centerPoint").attr("cy", d3.event.y);
+    d3.select("#centerPointLabel")
+      .attr("y", d3.event.y-CENTER_POINT_LABEL_OFFSET)
+      .text(renderTimeQuantity(radiusScale.invert(radiusValue)));
     console.log(renderTimeQuantity(radiusScale.invert(radiusValue)));
   }
 }
