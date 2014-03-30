@@ -194,18 +194,29 @@ function create() {
     .attr("y", CENTER_Y-CENTER_POINT_LABEL_OFFSET)
     .attr("text-anchor", "middle")
     .call(drag);
+
+  svg.append("circle")
+    .attr("id", "centerPointGuideCircle")
+    .attr("stroke", "black")
+    .attr("fill", "transparent")
+    .attr("cx", CENTER_X)
+    .attr("cy", CENTER_Y);
 }
 
 function centerPointDragged(d) {
   var newY = d3.event.y;
   if (newY >= 0 && newY <= CENTER_Y) {
-    var radiusValue = MAX_RADIUS - newY;
+    var radius = MAX_RADIUS - newY;
+    var timeQuantity = radiusScale.invert(radius);
 
-    d3.select("#centerPoint").attr("cy", d3.event.y);
+    d3.select("#centerPoint").attr("cy", newY);
+
     d3.select("#centerPointLabel")
-      .attr("y", d3.event.y-CENTER_POINT_LABEL_OFFSET)
-      .text(renderTimeQuantity(radiusScale.invert(radiusValue)));
-    console.log(renderTimeQuantity(radiusScale.invert(radiusValue)));
+      .attr("y", newY - CENTER_POINT_LABEL_OFFSET)
+      .text(renderTimeQuantity(timeQuantity));
+
+    d3.select("#centerPointGuideCircle")
+      .attr("r", radius);
   }
 }
 
