@@ -3,7 +3,7 @@ var HEIGHT = 800;
 var CENTER_X = WIDTH/2;
 var CENTER_Y = HEIGHT/2;
 var MIN_RADIUS = 20;
-var MAX_RADIUS = CENTER_X - MIN_RADIUS;
+var MAX_RADIUS = CENTER_X;
 
 var NOW = new Date().getTime();
 var SECOND = 1000;
@@ -14,7 +14,8 @@ var WEEK = 7 * DAY;
 var MIN_CYCLE = 5 * MINUTE;
 var MAX_CYCLE = 365 * DAY;
 var MARGIN = 20;
-var radiusScale = d3.scale.log().domain([MIN_CYCLE, MAX_CYCLE]).range([MIN_RADIUS, MAX_RADIUS - MARGIN]);
+
+var radiusScale = d3.scale.log().domain([MIN_CYCLE, MAX_CYCLE]).range([0, MAX_RADIUS - MARGIN]);
 
 var CYCLES = [
   { name: "30m", start: NOW, end: NOW + (30 * MINUTE), id: 1 },
@@ -166,12 +167,38 @@ function renderTimeQuantity(millis) {
   }
 }
 
-function update() {
-
-  svg = d3.select("#mainSvg")
+function create() {
+  var svg = d3.select("#mainSvg")
     .attr("width", WIDTH)
     .attr("height", HEIGHT);
 
+  var drag = d3.behavior.drag()
+    .on("drag", dragged);
+
+  update();
+
+  svg.append("circle")
+    .attr("class", "centerPoint")
+    .attr("r", "5")
+    .attr("fill", "red")
+    .attr("cy", CENTER_Y)
+    .attr("cx", CENTER_X)
+    .call(drag);
+
+}
+
+function dragged(d) {
+  var newY = d3.event.y;
+  if (newY >= 0 && newY <= CENTER_Y) {
+    d3.select(this).attr("cy", d3.event.y);
+    var radiusValue = MAX_RADIUS - newY;
+    console.log(renderTimeQuantity(radiusScale.invert(radiusValue)));
+  }
+}
+
+function update() {
+
+  var svg = d3.select("#mainSvg");
   svgDefs = svg.select("defs");
 
   // FIXME: setting up transitions would be cool, but wow is it complicated
