@@ -91,18 +91,17 @@ function getRatioFromCoordinates(x, y, cx, cy) {
   x /= radius;
   y /= radius;
 
-  var radians;
+  /* Trig is *not* my strong suit but the following works
+     experimentally. */
+  var ratio;
   if (y > 0) {
-    radians = Math.acos(-x);
+    ratio = Math.acos(-x) / (2*Math.PI);
   } else {
-    radians = (2*Math.PI) - Math.acos(-x);
+    ratio = ((2*Math.PI) - Math.acos(-x)) / (2*Math.PI);
   }
 
-  // our method of finding the angle in radians (the parametric equation) 
-  // assumes we start at 3 o'clock, so adjust radians value for that, 
-  // rolling over if we go past 2PI
-  radians = (radians + (Math.PI * 3/2)) % (2 * Math.PI);
-  return radians/(2*Math.PI);
+  // adjust the ratio so that it starts at 12 o'clock on the circle
+  return (ratio + .75) % 1;
 }
 
 function setElapsedRatio(d, newRatio) {
