@@ -49,18 +49,7 @@ http://jsfiddle.net/r4T77/
  * c) sin/cos assume a coordinate space where y values are positive above the
  *    x-axis, SVG assumes the opposite
  */
-function makeRelativeEndPoint(radius, ratio, isX) {
-
-  /*
-  // arc paths don't handle near complete circles well
-  // so we could cheat. . .
-  console.log(ratio);
-  var ratioRemainder = ratio % 1;
-  if (ratioRemainder > .99) ratio -= (ratioRemainder - .99);
-  if (ratioRemainder < .01) ratio += (.01 - ratioRemainder);
-  console.log(ratio);
-  */
-
+function makeArcEndPoint(radius, ratio, isX) {
   // convert ratio into radians (0 => 0 . . . 1 => 2PI)
   var radians = ratio * 2 * Math.PI;
 
@@ -82,6 +71,49 @@ function makeRelativeEndPoint(radius, ratio, isX) {
   if (!isX) coord = -coord;
 
   return coord;
+}
+
+/**
+ * The sort-of inverse of makeArcEndPoint. . . takes coordinates of the
+ * center of a circle and of another point and determines how far around
+ * the circle the other point is */
+function getRatioFromCoordinates(x, y, cx, cy) {
+  // make x and y relative to center of circle, not upper left corner
+  // of window
+  x -= cx;
+  y -= cy;
+
+  // make y positive *above* the x axis
+  y = -y; 
+
+  // convert x and y to unit circle coordinates
+  var radius = Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2));
+  x /= radius;
+  y /= radius;
+
+  var radians;
+  if (y > 0) {
+    radians = Math.acos(-x);
+  } else {
+    radians = (2*Math.PI) - Math.acos(-x);
+  }
+
+  // our method of finding the angle in radians (the parametric equation) 
+  // assumes we start at 3 o'clock, so adjust radians value for that, 
+  // rolling over if we go past 2PI
+  radians = (radians + (Math.PI * 3/2)) % (2 * Math.PI);
+  return radians/(2*Math.PI);
+}
+
+function setElapsedRatio(d, newRatio) {
+  /* Figure out the delta between the current
+     ratio and the requested one, and adjust the start
+     and end time based on that delta. */
+  var span = d.end - d.start;
+  var ratioDelta = newRatio - getElapsedRatio(d);
+  var delta = ratioDelta * span;
+  d.start -= delta;
+  d.end -= delta;
 }
 
 function getElapsedRatio(d) {
@@ -121,8 +153,8 @@ function makePathData(d, i, elapsedRatio) {
     elapsedRatio = getElapsedRatio(d);
   var largeArc = elapsedRatio % 1 > .5 ? 1 : 0;
   var sweep = 1; // always one as long as we start from the top and go clockwise
-  endDx = makeRelativeEndPoint(radius, elapsedRatio, true);
-  endDy = makeRelativeEndPoint(radius, elapsedRatio, false);
+  endDx = makeArcEndPoint(radius, elapsedRatio, true);
+  endDy = makeArcEndPoint(radius, elapsedRatio, false);
   var parts = [
     "M", startX, startY,
     "a", xRadius, yRadius, 
@@ -145,12 +177,12 @@ function makeLabelPathData(d, i) {
 }
 
 function makeCycleTipCX(d, i) {
-  var relativeEndPoint = makeRelativeEndPoint(getRadiusLog(d.end-d.start), getElapsedRatio(d), true);
+  var relativeEndPoint = makeArcEndPoint(getRadiusLog(d.end-d.start), getElapsedRatio(d), true);
   return relativeEndPoint + getStartX(i); // convert to absolute
 }
 
 function makeCycleTipCY(d, i) {
-  var relativeEndPoint = makeRelativeEndPoint(getRadiusLog(d.end-d.start), getElapsedRatio(d), false);
+  var relativeEndPoint = makeArcEndPoint(getRadiusLog(d.end-d.start), getElapsedRatio(d), false);
   return relativeEndPoint + getStartY(d); // convert to absolute
 }
 
@@ -220,7 +252,15 @@ function centerPointDragged(d) {
   }
 }
 
+function cycleTipDragged(d) {
+  var ratio = getRatioFromCoordinates(d3.event.x, d3.event.y, CENTER_X, CENTER_Y);
+  setElapsedRatio(d, ratio)
+  update();
+}
+
 function update() {
+  var drag = d3.behavior.drag()
+    .on("drag", cycleTipDragged);
 
   var svg = d3.select("#mainSvg");
   svgDefs = svg.select("defs");
@@ -257,18 +297,6 @@ function update() {
   cycle.attr("d", makeSubsequentPathData);
   cycle.exit().remove();
 
- var cycleTip = svg.selectAll("circle.cycleTip")
-    .data(CYCLES);
-  cycleTip.enter()
-    .append("circle")
-    .attr("class", "cycleTip")
-    .attr("r", "3")
-    .attr("fill", "green");
-  cycleTip
-    .attr("cy", makeCycleTipCY)
-    .attr("cx", makeCycleTipCX);
-  cycleTip.exit().remove();
-
   var labelPath = svgDefs.selectAll("path.labelPath")
     .data(CYCLES);
   labelPath.enter()
@@ -304,5 +332,19 @@ function update() {
       var remaining = period - (((new Date().getTime()) - d.start) % period);
       return d.name + " (" + renderTimeQuantity(remaining) + " remain)";
     });
+
+ var cycleTip = svg.selectAll("circle.cycleTip")
+    .data(CYCLES);
+  cycleTip.enter()
+    .append("circle")
+    .attr("class", "cycleTip")
+    .attr("r", 3)
+    .attr("fill", "green")
+    .call(drag);
+  cycleTip
+    .attr("cy", makeCycleTipCY)
+    .attr("cx", makeCycleTipCX);
+  cycleTip.exit().remove();
+
 
 }
