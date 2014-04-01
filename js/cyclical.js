@@ -39,6 +39,14 @@ document.body.appendChild(s)
 http://jsfiddle.net/r4T77/
 */
 
+function getNextId() {
+  var nextId = 1;
+  for (var i=0; i < CYCLES.length; i++) {
+    if (CYCLES[i]["id"] <= nextId) nextId = CYCLES[i]["id"] + 1;
+  }
+  return nextId;
+}
+
 /**
  * We need to get coordinates for a point on a circle with the
  * given radius where the angle corresponds to the given ratio.  
@@ -219,31 +227,58 @@ function create() {
     .attr("height", HEIGHT);
 
   var drag = d3.behavior.drag()
-    .on("drag", centerPointDragged);
+    .on("drag", centerPointDragged)
+    .on("dragend", centerPointDragEnd);
 
   update();
 
   svg.append("circle")
     .attr("id", "centerPoint")
-    .attr("r", CENTER_POINT_RADIUS)
-    .attr("fill", "red")
-    .attr("cy", CENTER_Y)
-    .attr("cx", CENTER_X)
     .call(drag);
 
   svg.append("text")
     .attr("id", "centerPointLabel")
-    .attr("x", CENTER_X)
-    .attr("y", CENTER_Y-CENTER_POINT_LABEL_OFFSET)
-    .attr("text-anchor", "middle")
     .call(drag);
 
   svg.append("circle")
-    .attr("id", "centerPointGuideCircle")
+    .attr("id", "centerPointGuideCircle");
+
+  resetCenterPoint();
+}
+
+function resetCenterPoint() {
+  d3.select("#centerPoint")
+    .attr("r", CENTER_POINT_RADIUS)
+    .attr("fill", "red")
+    .attr("cy", CENTER_Y)
+    .attr("cx", CENTER_X);
+
+  d3.select("#centerPointLabel")
+    .attr("x", CENTER_X)
+    .attr("y", CENTER_Y-CENTER_POINT_LABEL_OFFSET)
+    .text("")
+    .attr("text-anchor", "middle");
+
+  d3.select("#centerPointGuideCircle")
     .attr("stroke", "black")
     .attr("fill", "transparent")
+    .attr("r", 0)
     .attr("cx", CENTER_X)
     .attr("cy", CENTER_Y);
+}
+
+function centerPointDragEnd(d) {
+  var now = new Date().getTime();
+  var radius = d3.select("#centerPointGuideCircle").attr("r");
+  var timeQuantity = radiusScale.invert(radius);
+  CYCLES.push({
+    name: "New Cycle",
+    start: now,
+    end: now+timeQuantity,
+    id: getNextId()
+  });
+  resetCenterPoint();
+  update();
 }
 
 function centerPointDragged(d) {
