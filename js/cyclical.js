@@ -135,6 +135,15 @@ function getRadiusLog(ms) {
   return radiusScale(ms);
 }
 
+function resetCycle(d) {
+  if (isCycleComplete(d)) {
+    var now = new Date().getTime();
+    var cycleLength = d.end - d.start;
+    d.start = now;
+    d.end = now + cycleLength;
+  }
+}
+
 function makePathData(d, elapsedRatio) {
   var cycleLength = d.end - d.start;
   var radius = getRadiusLog(cycleLength);
@@ -339,6 +348,7 @@ function update() {
     .attr("class", "cycleTip")
     .attr("r", 4)
     .attr("fill", function (d) { return isCycleComplete(d) ? "red" : "green"; })
+    .on("click", resetCycle)
     .call(drag);
   cycleTip
     .attr("fill", function (d) { return isCycleComplete(d) ? "red" : "green"; })
