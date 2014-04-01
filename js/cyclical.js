@@ -141,6 +141,7 @@ function resetCycle(d) {
     var cycleLength = d.end - d.start;
     d.start = now;
     d.end = now + cycleLength;
+    update();
   }
 }
 
@@ -190,19 +191,26 @@ function makeCycleTipCY(d, i) {
 }
 
 function renderTimeQuantity(millis) {
-  if (millis < SECOND) {
-    return millis + " ms";
-  } else if (millis < MINUTE) {
-    return Math.round(millis/SECOND) + " seconds";
+  var value;
+  var units;
+  if (millis < MINUTE) {
+    value = Math.round(millis/SECOND);
+    units = " second";
   } else if (millis < HOUR) {
-    return Math.round(millis/MINUTE) + " minutes";
+    value = Math.round(millis/MINUTE);
+    units = " minute";
   } else if (millis < DAY) {
-    return Math.round(millis/HOUR) + " hours";
+    value = Math.round(millis/HOUR);
+    units = " hour";
   } else if (millis < WEEK) {
-    return Math.round(millis/DAY) + " days";
+    value = Math.round(millis/DAY);
+    units = " day";
   } else {
-    return Math.round(millis/WEEK) + " weeks";
+    value = Math.round(millis/WEEK);
+    units = " week";
   }
+  if (value != 1) units += "s";
+  return value + units;
 }
 
 function create() {
@@ -326,6 +334,7 @@ function update() {
   text.enter()
     .append("text")
     .attr("class", "label")
+    .attr("dy", -5) // moves the label off of the circle a bit
     .attr("style", "fill:black;")
     .append("textPath")
     .attr("xlink:href", function (d) { return "#label"+d.id })
@@ -337,7 +346,7 @@ function update() {
       } else {
         var period = d.end - d.start;
         var remaining = period - (((new Date().getTime()) - d.start) % period);
-        return d.name + " (" + renderTimeQuantity(remaining) + " remain)";
+        return d.name + " (" + renderTimeQuantity(remaining) + " left)";
       }
     });
 
