@@ -91,8 +91,7 @@ function getRatioFromCoordinates(x, y, cx, cy) {
   x /= radius;
   y /= radius;
 
-  /* Trig is *not* my strong suit but the following works
-     experimentally. */
+  /* Trig is *not* my strong suit but the following works experimentally. */
   var ratio;
   if (y > 0) {
     ratio = Math.acos(-x) / (2*Math.PI);
@@ -115,35 +114,31 @@ function setElapsedRatio(d, newRatio) {
   d.end -= delta;
 }
 
+function isCycleComplete(d) {
+  return new Date().getTime() >= d.end;
+}
+
 function getElapsedRatio(d) {
-  var now = new Date().getTime();
-  return (now - d.start)/(d.end - d.start);
+  if (isCycleComplete(d)) {
+    return .999; // ratio is never greater than 1
+  } else {
+    var now = new Date().getTime();
+    return (now - d.start)/(d.end - d.start);
+  }
 }
 
 function getStartY(d) {
   return CENTER_Y - getRadiusLog(d.end-d.start);
 }
 
-function getStartX(i) {
-  return CENTER_X;
-}
-
-/*
-function getRadius(i) {
-  var cycleCount = CYCLES.length;
-  var radiusIncrement = (MAX_RADIUS - MIN_RADIUS) / cycleCount;
-  return ((i + 1) * radiusIncrement) + MIN_RADIUS;
-}
-*/
-
 function getRadiusLog(ms) {
   return radiusScale(ms);
 }
 
-function makePathData(d, i, elapsedRatio) {
+function makePathData(d, elapsedRatio) {
   var cycleLength = d.end - d.start;
   var radius = getRadiusLog(cycleLength);
-  var startX = getStartX(i);
+  var startX = CENTER_X;
   var startY = getStartY(d);
   var xRadius = radius;
   var yRadius = radius;
@@ -163,21 +158,21 @@ function makePathData(d, i, elapsedRatio) {
   return parts.join(" ");
 }
 
-function makeInitialPathData(d, i) {
-  return makePathData(d, i, 0);
+function makeInitialPathData(d) {
+  return makePathData(d, 0);
 }
 
-function makeSubsequentPathData(d, i) {
-  return makePathData(d, i);
+function makeSubsequentPathData(d) {
+  return makePathData(d);
 }
 
-function makeLabelPathData(d, i) {
-  return makePathData(d, i+.1, .999);
+function makeLabelPathData(d) {
+  return makePathData(d, .999);
 }
 
 function makeCycleTipCX(d, i) {
   var relativeEndPoint = makeArcEndPoint(getRadiusLog(d.end-d.start), getElapsedRatio(d), true);
-  return relativeEndPoint + getStartX(i); // convert to absolute
+  return relativeEndPoint + CENTER_X; // convert to absolute
 }
 
 function makeCycleTipCY(d, i) {
@@ -289,11 +284,13 @@ function update() {
   cycle.enter()
     .append("path")
     .attr("class", "cycle")
-    .attr("stroke", "green")
+    .attr("stroke", function (d) { return isCycleComplete(d) ? "red" : "green"; })
     .attr("stroke-width", "3")
     .attr("d", makeInitialPathData)
     .attr("fill", "transparent");
-  cycle.attr("d", makeSubsequentPathData);
+  cycle
+    .attr("d", makeSubsequentPathData)
+    .attr("stroke", function (d) { return isCycleComplete(d) ? "red" : "green"; });
   cycle.exit().remove();
 
   var labelPath = svgDefs.selectAll("path.labelPath")
@@ -326,10 +323,13 @@ function update() {
     .attr("class", "textPathLabel");
   svg.selectAll(".textPathLabel")
     .text(function (d) { 
-      // get the proper time quantity even if we've looped around once or more
-      var period = d.end - d.start;
-      var remaining = period - (((new Date().getTime()) - d.start) % period);
-      return d.name + " (" + renderTimeQuantity(remaining) + " remain)";
+      if (isCycleComplete(d)) {
+        return d.name;
+      } else {
+        var period = d.end - d.start;
+        var remaining = period - (((new Date().getTime()) - d.start) % period);
+        return d.name + " (" + renderTimeQuantity(remaining) + " remain)";
+      }
     });
 
  var cycleTip = svg.selectAll("circle.cycleTip")
@@ -337,10 +337,11 @@ function update() {
   cycleTip.enter()
     .append("circle")
     .attr("class", "cycleTip")
-    .attr("r", 3)
-    .attr("fill", "green")
+    .attr("r", 4)
+    .attr("fill", function (d) { return isCycleComplete(d) ? "red" : "green"; })
     .call(drag);
   cycleTip
+    .attr("fill", function (d) { return isCycleComplete(d) ? "red" : "green"; })
     .attr("cy", makeCycleTipCY)
     .attr("cx", makeCycleTipCX);
   cycleTip.exit().remove();
