@@ -1,5 +1,14 @@
 #svgLayer {
+  pointer-events: none;
   position: absolute;
   top: 0px;
   left: 0px;
+}
+
+#centerPoint {
+  pointer-events: auto;
+}
+
+circle.cycleTip {
+  pointer-events: auto;
 }

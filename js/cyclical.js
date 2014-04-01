@@ -42,7 +42,7 @@ http://jsfiddle.net/r4T77/
 function getNextId() {
   var nextId = 1;
   for (var i=0; i < CYCLES.length; i++) {
-    if (CYCLES[i]["id"] <= nextId) nextId = CYCLES[i]["id"] + 1;
+    if (CYCLES[i]["id"] >= nextId) nextId = CYCLES[i]["id"] + 1;
   }
   return nextId;
 }
