@@ -222,9 +222,7 @@ function renderTimeQuantity(millis) {
 }
 
 function create() {
-  var svg = d3.select("#mainSvg")
-    .attr("width", WIDTH)
-    .attr("height", HEIGHT);
+  var svg = d3.select("#mainSvg");
 
   var drag = d3.behavior.drag()
     .on("drag", centerPointDragged)
@@ -244,6 +242,43 @@ function create() {
     .attr("id", "centerPointGuideCircle");
 
   resetCenterPoint();
+}
+
+function openCycleDialog(cycleData) {
+  d3.select("#frostedGlass")
+    .classed({'frostedGlassActive': true, 'frostedGlassInactive': false});
+  var form = d3.select("#dialogLayer")
+    .append("div")
+    .attr("id", "dialog")
+    .append("form");
+
+  form
+    .append("input")
+    .attr("type", "text")
+    .attr("value", cycleData["name"])
+    .attr("id", "cycleName");
+
+  form
+    .append("br");
+
+  form
+    .append("input")
+    .attr("type", "submit")
+    .attr("value", "Remove")
+    .on("click", closeCycleDialog);
+
+  form
+    .append("input")
+    .attr("type", "submit")
+    .attr("value", "Save")
+    .on("click", closeCycleDialog);
+}
+
+function closeCycleDialog() {
+  d3.select("#dialog").remove();
+
+  d3.select("#frostedGlass")
+    .classed({'frostedGlassActive': false, 'frostedGlassInactive': true});
 }
 
 function resetCenterPoint() {
@@ -271,14 +306,16 @@ function centerPointDragEnd(d) {
   var now = new Date().getTime();
   var radius = d3.select("#centerPointGuideCircle").attr("r");
   var timeQuantity = radiusScale.invert(radius);
-  CYCLES.push({
+  var newCycle = {
     name: "New Cycle",
     start: now,
     end: now+timeQuantity,
     id: getNextId()
-  });
+  };
+  CYCLES.push(newCycle);
   resetCenterPoint();
   update();
+  openCycleDialog(newCycle);
 }
 
 function centerPointDragged(d) {

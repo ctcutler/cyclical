@@ -3,6 +3,51 @@
   position: absolute;
   top: 0px;
   left: 0px;
+  width: 800px;
+  height: 800px;
+}
+
+#frostedGlass {
+  background-color: white;
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  width: 800px;
+  height: 800px;
+}
+
+.frostedGlassActive {
+  opacity: 0.7;
+  pointer-events: auto;
+}
+
+.frostedGlassInactive {
+  opacity: 0;
+  pointer-events: none;
+}
+
+#dialogLayer {
+  pointer-events: none;
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  width: 800px;
+  height: 800px;
+}
+
+#dialog {
+  pointer-events: auto;
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: 300px;
+  width: 30%;
+  background-color: #b0e0e6;
+  padding: 10px;
+  text-align: right;
+}
+
+#cycleName {
+  width: 97%;
 }
 
 #centerPoint {
