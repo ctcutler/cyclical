@@ -20,7 +20,7 @@ var CENTER_POINT_LABEL_OFFSET = CENTER_POINT_RADIUS + 5;
 
 var radiusScale = d3.scale.log().domain([MIN_CYCLE, MAX_CYCLE]).range([0, MAX_RADIUS - MARGIN]);
 
-var CYCLES = [
+var cycles = [
   //{ name: "30m", start: NOW, end: NOW + (30 * MINUTE), id: 1 },
   { name: "1h", start: NOW, end: NOW + (1 * HOUR), id: 2 },
   { name: "1d", start: NOW, end: NOW + (1 * DAY), id: 3 },
@@ -41,8 +41,8 @@ http://jsfiddle.net/r4T77/
 
 function getNextId() {
   var nextId = 1;
-  for (var i=0; i < CYCLES.length; i++) {
-    if (CYCLES[i]["id"] >= nextId) nextId = CYCLES[i]["id"] + 1;
+  for (var i=0; i < cycles.length; i++) {
+    if (cycles[i]["id"] >= nextId) nextId = cycles[i]["id"] + 1;
   }
   return nextId;
 }
@@ -264,14 +264,33 @@ function openCycleDialog(cycleData) {
   form
     .append("input")
     .attr("type", "submit")
-    .attr("value", "Remove")
+    .attr("value", "Cancel")
     .on("click", closeCycleDialog);
 
   form
     .append("input")
     .attr("type", "submit")
+    .attr("value", "Remove")
+    .on("click", function () {
+      for (var i=0; i < cycles.length; i++) {
+        if (cycles[i]["id"] == cycleData["id"]) {
+          cycles.splice(i, 1);
+          break;
+        }
+      }
+      closeCycleDialog();
+      update();
+    });
+
+  form
+    .append("input")
+    .attr("type", "submit")
     .attr("value", "Save")
-    .on("click", closeCycleDialog);
+    .on("click", function() {
+      cycleData["name"] = d3.select("#cycleName").property("value");
+      closeCycleDialog();
+      update();
+    });
 }
 
 function closeCycleDialog() {
@@ -312,7 +331,7 @@ function centerPointDragEnd(d) {
     end: now+timeQuantity,
     id: getNextId()
   };
-  CYCLES.push(newCycle);
+  cycles.push(newCycle);
   resetCenterPoint();
   update();
   openCycleDialog(newCycle);
@@ -357,7 +376,7 @@ function update() {
   //   https://github.com/mbostock/d3/wiki/SVG-Shapes#wiki-arc
 
   var guideCircle = svg.selectAll("circle.guideCircle")
-    .data(CYCLES);
+    .data(cycles);
   guideCircle.enter()
     .append("circle")
     .attr("class", "guideCircle")
@@ -369,7 +388,7 @@ function update() {
   guideCircle.exit().remove();
 
   var cycle = svg.selectAll("path.cycle")
-    .data(CYCLES);
+    .data(cycles);
   cycle.enter()
     .append("path")
     .attr("class", "cycle")
@@ -383,7 +402,7 @@ function update() {
   cycle.exit().remove();
 
   var labelPath = svgDefs.selectAll("path.labelPath")
-    .data(CYCLES);
+    .data(cycles);
   labelPath.enter()
     .append("path")
     .attr("class", "labelPath")
@@ -392,7 +411,7 @@ function update() {
   labelPath.exit().remove();
 
   var labelUse = svg.selectAll("use.label")
-    .data(CYCLES);
+    .data(cycles);
   labelUse.enter()
     .append("use")
     .attr("xlink:href", function (d) { return "#label"+d.id })
@@ -402,15 +421,17 @@ function update() {
   labelUse.exit().remove();
 
   var text = svg.selectAll("text.label")
-    .data(CYCLES);
+    .data(cycles);
   text.enter()
     .append("text")
     .attr("class", "label")
     .attr("dy", -5) // moves the label off of the circle a bit
+    .on("click", openCycleDialog)
     .attr("style", "fill:black;")
     .append("textPath")
     .attr("xlink:href", function (d) { return "#label"+d.id })
     .attr("class", "textPathLabel");
+
   svg.selectAll(".textPathLabel")
     .text(function (d) { 
       if (isCycleComplete(d)) {
@@ -423,7 +444,7 @@ function update() {
     });
 
  var cycleTip = svg.selectAll("circle.cycleTip")
-    .data(CYCLES);
+    .data(cycles);
   cycleTip.enter()
     .append("circle")
     .attr("class", "cycleTip")

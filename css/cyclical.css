@@ -57,3 +57,7 @@
 circle.cycleTip {
   pointer-events: auto;
 }
+
+text.label {
+  pointer-events: auto;
+}
