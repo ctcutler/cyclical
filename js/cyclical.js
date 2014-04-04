@@ -21,14 +21,13 @@ var CENTER_POINT_LABEL_OFFSET = CENTER_POINT_RADIUS + 5;
 var radiusScale = d3.scale.log().domain([MIN_CYCLE, MAX_CYCLE]).range([0, MAX_RADIUS - MARGIN]);
 
 var cycles = [
-  //{ name: "30m", start: NOW, end: NOW + (30 * MINUTE), id: 1 },
   { name: "1h", start: NOW, end: NOW + (1 * HOUR), id: 2 },
   { name: "1d", start: NOW, end: NOW + (1 * DAY), id: 3 },
-  //{ name: "7d", start: NOW, end: NOW + (7 * DAY), id: 4 },
   { name: "30d", start: NOW, end: NOW + (30 * DAY), id: 5 },
-  //{ name: "90d", start: NOW, end: NOW + (90 * DAY), id: 6 },
   { name: "365d", start: NOW, end: NOW + (365 * DAY), id: 7 },
 ];
+
+var nextId = 8;
 
 
 /* for js console testing:
@@ -40,11 +39,7 @@ http://jsfiddle.net/r4T77/
 */
 
 function getNextId() {
-  var nextId = 1;
-  for (var i=0; i < cycles.length; i++) {
-    if (cycles[i]["id"] >= nextId) nextId = cycles[i]["id"] + 1;
-  }
-  return nextId;
+  return nextId++;
 }
 
 /**
@@ -250,7 +245,10 @@ function openCycleDialog(cycleData) {
   var form = d3.select("#dialogLayer")
     .append("div")
     .attr("id", "dialog")
-    .append("form");
+    .append("form")
+    // without this, page may spontaneously reload
+    .attr("action", "javascript:void(0);"); 
+
 
   form
     .append("input")
@@ -360,6 +358,10 @@ function cycleTipDragged(d) {
   update();
 }
 
+function cyclesKey(d) {
+  return d.id;
+}
+
 function update() {
   var drag = d3.behavior.drag()
     .on("drag", cycleTipDragged);
@@ -376,7 +378,7 @@ function update() {
   //   https://github.com/mbostock/d3/wiki/SVG-Shapes#wiki-arc
 
   var guideCircle = svg.selectAll("circle.guideCircle")
-    .data(cycles);
+    .data(cycles, cyclesKey);
   guideCircle.enter()
     .append("circle")
     .attr("class", "guideCircle")
@@ -388,7 +390,7 @@ function update() {
   guideCircle.exit().remove();
 
   var cycle = svg.selectAll("path.cycle")
-    .data(cycles);
+    .data(cycles, cyclesKey);
   cycle.enter()
     .append("path")
     .attr("class", "cycle")
@@ -402,7 +404,7 @@ function update() {
   cycle.exit().remove();
 
   var labelPath = svgDefs.selectAll("path.labelPath")
-    .data(cycles);
+    .data(cycles, cyclesKey);
   labelPath.enter()
     .append("path")
     .attr("class", "labelPath")
@@ -411,7 +413,7 @@ function update() {
   labelPath.exit().remove();
 
   var labelUse = svg.selectAll("use.label")
-    .data(cycles);
+    .data(cycles, cyclesKey);
   labelUse.enter()
     .append("use")
     .attr("xlink:href", function (d) { return "#label"+d.id })
@@ -421,7 +423,7 @@ function update() {
   labelUse.exit().remove();
 
   var text = svg.selectAll("text.label")
-    .data(cycles);
+    .data(cycles, cyclesKey);
   text.enter()
     .append("text")
     .attr("class", "label")
@@ -444,7 +446,7 @@ function update() {
     });
 
  var cycleTip = svg.selectAll("circle.cycleTip")
-    .data(cycles);
+    .data(cycles, cyclesKey);
   cycleTip.enter()
     .append("circle")
     .attr("class", "cycleTip")
