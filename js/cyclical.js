@@ -20,12 +20,7 @@ var CENTER_POINT_LABEL_OFFSET = CENTER_POINT_RADIUS + 5;
 
 var radiusScale = d3.scale.log().domain([MIN_CYCLE, MAX_CYCLE]).range([0, MAX_RADIUS - MARGIN]);
 
-var cycles = [
-  { name: "1h", start: NOW, end: NOW + (1 * HOUR), id: 2 },
-  { name: "1d", start: NOW, end: NOW + (1 * DAY), id: 3 },
-  { name: "30d", start: NOW, end: NOW + (30 * DAY), id: 5 },
-  { name: "365d", start: NOW, end: NOW + (365 * DAY), id: 7 },
-];
+var cycles;
 
 var nextId = 8;
 
@@ -216,7 +211,20 @@ function renderTimeQuantity(millis) {
   return value + units;
 }
 
+function storeCycles() {
+  localStorage["cycles"] = JSON.stringify(cycles);
+}
+
+function loadCycles() {
+  if (!("cycles" in localStorage)) {
+    localStorage["cycles"] = JSON.stringify([]);
+  }
+  return JSON.parse(localStorage["cycles"]);
+}
+
 function create() {
+  cycles = loadCycles();
+
   var svg = d3.select("#mainSvg");
 
   var drag = d3.behavior.drag()
@@ -461,4 +469,5 @@ function update() {
   cycleTip.exit().remove();
 
 
+  storeCycles();
 }
