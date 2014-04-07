@@ -22,7 +22,7 @@ var radiusScale = d3.scale.log().domain([MIN_CYCLE, MAX_CYCLE]).range([0, MAX_RA
 
 var cycles;
 
-var nextId = 8;
+var nextId;
 
 
 /* for js console testing:
@@ -219,11 +219,22 @@ function loadCycles() {
   if (!("cycles" in localStorage)) {
     localStorage["cycles"] = JSON.stringify([]);
   }
-  return JSON.parse(localStorage["cycles"]);
+  cycles = JSON.parse(localStorage["cycles"]);
+  nextId = 1;
+  for (var i=0; i < cycles.length; i++) {
+    if (cycles[i]["id"] >= nextId) {
+      nextId = cycles[i]["id"] + 1;
+    }
+  }
 }
 
+
 function create() {
-  cycles = loadCycles();
+  loadCycles();
+
+  for (var i=0; i < cycles.length; i++) {
+    console.log(cycles[i]);
+  }
 
   var svg = d3.select("#mainSvg");
 
