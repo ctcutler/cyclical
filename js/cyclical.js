@@ -11,6 +11,7 @@ var MINUTE = 60 * SECOND;
 var HOUR = 60 * MINUTE;
 var DAY = 24 * HOUR;
 var WEEK = 7 * DAY;
+var MONTH = 4 * WEEK; /* a bad approximation, of course */
 var MIN_CYCLE = 5 * MINUTE;
 var MAX_CYCLE = 365 * DAY;
 var MARGIN = 20;
@@ -203,9 +204,12 @@ function renderTimeQuantity(millis) {
   } else if (millis < WEEK) {
     value = Math.round(millis/DAY);
     units = " day";
-  } else {
+  } else if (millis < MONTH) {
     value = Math.round(millis/WEEK);
     units = " week";
+  } else {
+    value = Math.round(millis/MONTH);
+    units = " month";
   }
   if (value != 1) units += "s";
   return value + units;
@@ -247,6 +251,16 @@ function create() {
   svg.append("circle")
     .attr("id", "centerPoint")
     .call(drag);
+
+  if (cycles.length == 0) {
+    svg.append("text")
+      .attr("id", "helpText")
+      .attr("style", "text-anchor: middle;")
+      .attr("x", CENTER_X)
+      .attr("y", CENTER_Y)
+      .attr("dy", 25)
+      .text("Drag this up and let it go to create a cycle.");
+  } 
 
   svg.append("text")
     .attr("id", "centerPointLabel")
@@ -320,7 +334,6 @@ function closeCycleDialog() {
 function resetCenterPoint() {
   d3.select("#centerPoint")
     .attr("r", CENTER_POINT_RADIUS)
-    .attr("fill", "red")
     .attr("cy", CENTER_Y)
     .attr("cx", CENTER_X);
 
@@ -479,6 +492,9 @@ function update() {
     .attr("cx", makeCycleTipCX);
   cycleTip.exit().remove();
 
+  if (cycles.length > 0) {
+    svg.select("#helpText").remove();
+  }
 
   storeCycles();
 }

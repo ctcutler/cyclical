@@ -39,11 +39,12 @@
   pointer-events: auto;
   margin-left: auto;
   margin-right: auto;
-  margin-top: 300px;
+  margin-top: 360px;
   width: 30%;
-  background-color: #b0e0e6;
+  background-color: #eeeeee;
   padding: 10px;
   text-align: right;
+  border: 1px solid black;
 }
 
 #cycleName {
@@ -52,6 +53,7 @@
 
 #centerPoint {
   pointer-events: auto;
+  fill: green;
 }
 
 circle.cycleTip {
