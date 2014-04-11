@@ -12,8 +12,8 @@ var HOUR = 60 * MINUTE;
 var DAY = 24 * HOUR;
 var WEEK = 7 * DAY;
 var MONTH = 4 * WEEK; /* a bad approximation, of course */
-var MIN_CYCLE = 5 * MINUTE;
-var MAX_CYCLE = 365 * DAY;
+var MIN_CYCLE = 1 * DAY;
+var MAX_CYCLE = 6 * MONTH;
 var MARGIN = 20;
 
 var CENTER_POINT_RADIUS = 5;
@@ -192,19 +192,19 @@ function makeCycleTipCY(d, i) {
 function renderTimeQuantity(millis) {
   var value;
   var units;
-  if (millis < MINUTE) {
+  if (millis < 2 * MINUTE) {
     value = Math.round(millis/SECOND);
     units = " second";
-  } else if (millis < HOUR) {
+  } else if (millis < 2 * HOUR) {
     value = Math.round(millis/MINUTE);
     units = " minute";
-  } else if (millis < DAY) {
+  } else if (millis < 2 * DAY) {
     value = Math.round(millis/HOUR);
     units = " hour";
-  } else if (millis < WEEK) {
+  } else if (millis < 2 * WEEK) {
     value = Math.round(millis/DAY);
     units = " day";
-  } else if (millis < MONTH) {
+  } else if (millis < 2 * MONTH) {
     value = Math.round(millis/WEEK);
     units = " week";
   } else {
