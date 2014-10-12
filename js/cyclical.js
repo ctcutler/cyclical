@@ -465,6 +465,7 @@ function update() {
     .append("textPath")
     .attr("xlink:href", function (d) { return "#label"+d.id })
     .attr("class", "textPathLabel");
+  text.exit().remove();
 
   svg.selectAll(".textPathLabel")
     .text(function (d) { 
