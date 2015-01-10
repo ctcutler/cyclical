@@ -1,8 +1,8 @@
 Cyclical Calendar
 =================
-Cyclical Calendar is a calendar for things you want to do periodically but not on specific dates like getting your hair cut or watering the plants.  
+Cyclical Calendar is a calendar for things you want to do periodically but not on specific dates.  Things like getting your hair cut or watering the plants.  
 
-To try it out, [download the project](https://github.com/ctcutler/cyclical/archive/master.zip) and load cyclical.html in Google Chrome (I haven't tested in other web browsers are untested but may also work).  
+To try it out, [download the project](https://github.com/ctcutler/cyclical/archive/master.zip) and load cyclical.html in Google Chrome (other web browsers are untested but may also work).  
 
 INSTRUCTIONS
 
@@ -23,4 +23,3 @@ FUTURE IMPROVEMENTS
 * Come up with a better strategy for displaying the labels of two cycles of the same size (right now they just show up on top of one another).  
 * Better look and feel. 
 * Expand to fit the browser window.
-* Better code organization.
